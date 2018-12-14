@@ -1,7 +1,9 @@
 import java.io.FileNotFoundException;
+import java.util.LinkedList;
 
 public class TestHash {
     public static void main(String[] args) throws FileNotFoundException {
-        Indexer indexer = new Indexer("src/tweets.csv");
+        InvertedIndex<String, LinkedList> index = new InvertedIndex<>();
+        index.index("src/tweets.csv");
     }
 }

@@ -7,11 +7,12 @@ public class InvertedIndex<Term extends String, Postings extends List>
     private ArrayList<HashNode<Term, Postings>> buckets;
     private int size;
     private LinkedList<Term> docContent;
-    private boolean indexing;
     private int capacity;
     private double loadFactor;
     private double expansionRate;
     private Set<Entry<Term, Postings>> entrySet;
+    private Indexer indexer;
+    private boolean indexing;
 
     public static final int DEFAULT_CAPACITY = 16;
     public static final double DEFAULT_EXPANSION_RATE = 1.5;
@@ -30,7 +31,7 @@ public class InvertedIndex<Term extends String, Postings extends List>
     }
 
     public void index(String path) throws FileNotFoundException {
-        Indexer.index(path);
+        indexer.index(path);
     }
 
     @Override
@@ -93,27 +94,31 @@ public class InvertedIndex<Term extends String, Postings extends List>
         int bucketIndex = newEntry.hashCode() % capacity;
         Postings retVal;
 
-        HashNode<Term, Postings> existing = buckets.get(bucketIndex);
-        if (existing == null) {
+        HashNode<Term, Postings> node = buckets.get(bucketIndex);
+        if (node == null) {
             retVal = addToEmptyBucket(newEntry, bucketIndex);
         } else {
-            while (existing.next() != null) existing = existing.next();
-            size++;
-            retVal = existing.append(newEntry);
-            entrySet.add(existing);
+            retVal = addToActiveBucket(newEntry, node);
         }
-
+        size++;
+        entrySet.add(newEntry);
         if (size >= loadFactor) {
             expandCapacity(expansionRate);
         }
+
         return retVal;
     }
 
     private Postings addToEmptyBucket(HashNode<Term, Postings> newEntry, int index) {
         buckets.set(index, newEntry);
-        size++;
-        entrySet.add(newEntry);
         return newEntry.getValue();
+    }
+
+    private Postings addToActiveBucket(HashNode<Term, Postings> newEntry,
+                                       HashNode<Term, Postings> startNode) {
+        HashNode<Term, Postings> currentNode = startNode;
+        while (currentNode.next() != null) currentNode = currentNode.next();
+        return currentNode.append(newEntry);
     }
 
     private void expandCapacity(double rate) {
@@ -187,7 +192,8 @@ public class InvertedIndex<Term extends String, Postings extends List>
         docContent = new LinkedList<>();
         size = 0;
         loadFactor = capacity * .75;
-        expansionRate = 1.5;
+        expansionRate = DEFAULT_EXPANSION_RATE;
+        indexer = new Indexer();
     }
 
     @Override
@@ -216,17 +222,22 @@ public class InvertedIndex<Term extends String, Postings extends List>
         return expansionRate;
     }
 
+    public String getDocAtIndex(int index) {
+        return docContent.get(index);
+    }
+
     @Override
     public Set<Entry<Term, Postings>> entrySet() {
         return entrySet;
     }
 
-    private static class Indexer {
+    private class Indexer {
         private String[] clean(String line) {
             return line.split("\t");
         }
 
-        static LinkedList index(String filePath) throws FileNotFoundException {
+        LinkedList index(String filePath) throws FileNotFoundException {
+            indexing = true;
             File file = new File(filePath);
             Scanner scanner = new Scanner(file);
             scanner.useDelimiter(",");
@@ -237,6 +248,8 @@ public class InvertedIndex<Term extends String, Postings extends List>
                 System.out.println(tweet);
                 retVal.add(tweet);
             }
+
+            indexing = false;
             return retVal;
         }
     }
