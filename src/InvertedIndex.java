@@ -1,5 +1,3 @@
-import javafx.geometry.Pos;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
@@ -15,7 +13,6 @@ public class InvertedIndex<Term extends String, Postings extends List>
     private Set<Term> keySet;
     private Set<Entry<Term, Postings>> entrySet;
     private Indexer indexer;
-    private boolean indexing;
 
     public static final int DEFAULT_CAPACITY = 16;
     public static final double DEFAULT_EXPANSION_RATE = 1.5;
@@ -88,7 +85,7 @@ public class InvertedIndex<Term extends String, Postings extends List>
         }
 
         HashNode<Term, Postings> newEntry = new HashNode<>(key, value);
-        int bucketIndex = newEntry.hashCode() % capacity;
+        int bucketIndex = getBucketIndex(newEntry);
         Postings retVal;
 
         HashNode<Term, Postings> node = buckets.get(bucketIndex);
@@ -133,7 +130,7 @@ public class InvertedIndex<Term extends String, Postings extends List>
             throw new NoSuchElementException();
         }
 
-        int bucketIndex = getBucketIndex((Term) key);
+        int bucketIndex = getBucketIndex(getNode(key));
         return buckets.get(bucketIndex);
     }
 
@@ -142,7 +139,7 @@ public class InvertedIndex<Term extends String, Postings extends List>
     public Postings remove(Object key) {
         HashNode<Term, Postings> currentNode = getNode(key);
         if (currentNode.getKey().equals(key)) {
-            buckets.remove(getBucketIndex((Term) key));
+            buckets.remove(getBucketIndex(currentNode));
             return (Postings) currentNode.getValue();
         }
         while (currentNode.next() != null || !currentNode.next().getKey().equals(key)) {
@@ -173,8 +170,12 @@ public class InvertedIndex<Term extends String, Postings extends List>
         }
     }
 
-    private int getBucketIndex(Term key) {
-        return key.hashCode() % capacity;
+    private int getBucketIndex(HashNode<Term, Postings> entry) {
+        int remainder = entry.hashCode() % capacity;
+        if (remainder < 0) {
+            remainder += capacity;
+        }
+        return remainder;
     }
 
     @Override
@@ -186,7 +187,6 @@ public class InvertedIndex<Term extends String, Postings extends List>
     public void clear(int capacity) {
         this.capacity = capacity;
         buckets = new ArrayList<>(capacity);
-        indexing = false;
         docContent = new LinkedList<>();
         size = 0;
         loadFactor = capacity * .75;
@@ -259,7 +259,6 @@ public class InvertedIndex<Term extends String, Postings extends List>
         }
 
         LinkedList index(String filePath) throws FileNotFoundException {
-            indexing = true;
             File file = new File(filePath);
             Scanner scanner = new Scanner(file);
             scanner.useDelimiter(",");
@@ -271,7 +270,6 @@ public class InvertedIndex<Term extends String, Postings extends List>
                 retVal.add(tweet);
             }
 
-            indexing = false;
             return retVal;
         }
     }
