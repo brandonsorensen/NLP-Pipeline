@@ -1,3 +1,5 @@
+import javafx.geometry.Pos;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
@@ -10,6 +12,7 @@ public class InvertedIndex<Term extends String, Postings extends List>
     private int capacity;
     private double loadFactor;
     private double expansionRate;
+    private Set<Term> keySet;
     private Set<Entry<Term, Postings>> entrySet;
     private Indexer indexer;
     private boolean indexing;
@@ -56,13 +59,7 @@ public class InvertedIndex<Term extends String, Postings extends List>
 
     @Override
     public boolean containsKey(Object key) {
-        try {
-            get(key);
-        } catch (NoSuchElementException e) {
-            return false;
-        }
-
-        return true;
+        return keySet.contains(key);
     }
 
     @Override
@@ -102,6 +99,7 @@ public class InvertedIndex<Term extends String, Postings extends List>
         }
         size++;
         entrySet.add(newEntry);
+        keySet.add(newEntry.getKey());
         if (size >= loadFactor) {
             expandCapacity(expansionRate);
         }
@@ -131,7 +129,7 @@ public class InvertedIndex<Term extends String, Postings extends List>
     }
 
     private HashNode<Term, Postings> getNode(Object key) {
-        if (!(key instanceof String)) {
+        if (!(key instanceof String) || !entrySet.contains(key)) {
             throw new NoSuchElementException();
         }
 
@@ -142,7 +140,7 @@ public class InvertedIndex<Term extends String, Postings extends List>
     @Override
     @SuppressWarnings("unchecked")
     public Postings remove(Object key) {
-        HashNode currentNode = getNode(key);
+        HashNode<Term, Postings> currentNode = getNode(key);
         if (currentNode.getKey().equals(key)) {
             buckets.remove(getBucketIndex((Term) key));
             return (Postings) currentNode.getValue();
@@ -153,8 +151,8 @@ public class InvertedIndex<Term extends String, Postings extends List>
         if (currentNode.next() == null) {
             throw new NoSuchElementException();
         }
-        HashNode rightNode = currentNode.next().next();
-        HashNode objectNode;
+        HashNode<Term, Postings> rightNode = currentNode.next().next();
+        HashNode<Term, Postings> objectNode;
         if (rightNode != null) {
             // If the rightNode exists
             objectNode = currentNode.next();
@@ -165,7 +163,7 @@ public class InvertedIndex<Term extends String, Postings extends List>
             currentNode.setNext(null);
         }
         size--;
-        return (Postings) objectNode.getValue();
+        return objectNode.getValue();
     }
 
     @Override
@@ -194,15 +192,13 @@ public class InvertedIndex<Term extends String, Postings extends List>
         loadFactor = capacity * .75;
         expansionRate = DEFAULT_EXPANSION_RATE;
         indexer = new Indexer();
+        keySet = new HashSet<>();
+        entrySet = new HashSet<>();
     }
 
     @Override
     public Set<Term> keySet() {
-        Set<Term> retVal = new HashSet<>();
-        for (Entry<Term, Postings> entry : entrySet) {
-            retVal.add(entry.getKey());
-        }
-        return retVal;
+        return keySet;
     }
 
     @Override
