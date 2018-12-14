@@ -1,3 +1,4 @@
+import edu.stanford.nlp.process.DocumentPreprocessor;
 import javafx.geometry.Pos;
 
 import java.io.File;
@@ -78,6 +79,9 @@ public class InvertedIndex<Term extends String, Postings extends List>
 
     @Override
     public Postings put(Term key, Postings value) {
+        // TODO: If key exists, add to its postings list
+        // TODO: Check if key exists using keySet
+        // TODO: Throw exception if key already exists??
         if (key == null) {
             try {
                 throw new NullKeyException("Null keys are not allowed.");
@@ -95,6 +99,17 @@ public class InvertedIndex<Term extends String, Postings extends List>
         }
         // If we make it this far, we know the bucket is active
         return addToActiveBucket(newEntry, startNode);
+    }
+
+    public Postings put(Term key, int documentID) {
+        if (containsKey(key)) {
+            Postings postingsList = get(key);
+            postingsList.add(documentID);
+            return postingsList;
+        }
+
+        // If we reach this point, the key isn't in our table
+        return put(key, (Postings) new LinkedList<Integer>());
     }
 
     private void updateIndex(HashNode<Term, Postings> newEntry) {
@@ -267,17 +282,19 @@ public class InvertedIndex<Term extends String, Postings extends List>
         private String[] clean(String line) {
             return line.split("\t");
         }
+        private Set alphabet = new HashSet<String>(
+                Arrays.asList("aäbcdeëfghïejklmnoöpqrsßtüuvwxyz".split(""))
+        );
 
         LinkedList index(String filePath) throws FileNotFoundException {
-            File file = new File(filePath);
-            Scanner scanner = new Scanner(file);
-            scanner.useDelimiter(",");
             LinkedList<String> retVal = new LinkedList<>();
 
-            while (scanner.hasNext()) {
-                String tweet = scanner.next().split("\t")[0];
-                System.out.println(tweet);
-                retVal.add(tweet);
+            DocumentPreprocessor dp = new DocumentPreprocessor("src/tweets.csv");
+            int currentIndex = 0;
+            for (List sent: dp) {
+                for (String term : sent) {
+
+                }
             }
 
             return retVal;
