@@ -239,6 +239,24 @@ public class InvertedIndex<Term extends String, Postings extends List>
         return freqDist;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder("{");
+        int counter = 0;
+        for (Entry<Term, Postings> entry : entrySet) {
+            builder.append(entry.getKey());
+            builder.append(": ");
+            builder.append(entry.getValue());
+            builder.append(",\n");
+            counter++;
+            if (counter >= 10) {
+                break;
+            }
+        }
+        builder.append("}");
+        return builder.toString();
+    }
+
     private class Indexer {
         private String[] clean(String line) {
             return line.split("\t");
