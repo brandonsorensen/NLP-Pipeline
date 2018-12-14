@@ -1,3 +1,5 @@
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.*;
 
 public class InvertedIndex<Term extends String, Postings extends List>
@@ -9,7 +11,6 @@ public class InvertedIndex<Term extends String, Postings extends List>
     private int capacity;
     private double loadFactor;
     private double expansionRate;
-    // TODO Remove keySet
     private Set<Entry<Term, Postings>> entrySet;
 
     public static final int DEFAULT_CAPACITY = 16;
@@ -23,12 +24,14 @@ public class InvertedIndex<Term extends String, Postings extends List>
         clear(initialCapacity);
     }
 
-    InvertedIndex(int initialCapacity, String path) {
+    InvertedIndex(int initialCapacity, String path) throws FileNotFoundException {
         clear(initialCapacity);
         index(path);
     }
 
-    public void index(String path) {return;}
+    public void index(String path) throws FileNotFoundException {
+        Indexer.index(path);
+    }
 
     @Override
     public int size() {
@@ -42,8 +45,8 @@ public class InvertedIndex<Term extends String, Postings extends List>
 
     @Override
     public boolean containsValue(Object value) {
-        for (Term t : keySet) {
-            if (value.equals(get(t))) {
+        for (Entry entry: entrySet) {
+            if (value.equals(entry.getValue())) {
                 return true;
             }
         }
@@ -216,5 +219,25 @@ public class InvertedIndex<Term extends String, Postings extends List>
     @Override
     public Set<Entry<Term, Postings>> entrySet() {
         return entrySet;
+    }
+
+    private static class Indexer {
+        private String[] clean(String line) {
+            return line.split("\t");
+        }
+
+        static LinkedList index(String filePath) throws FileNotFoundException {
+            File file = new File(filePath);
+            Scanner scanner = new Scanner(file);
+            scanner.useDelimiter(",");
+            LinkedList<String> retVal = new LinkedList<>();
+
+            while (scanner.hasNext()) {
+                String tweet = scanner.next().split("\t")[0];
+                System.out.println(tweet);
+                retVal.add(tweet);
+            }
+            return retVal;
+        }
     }
 }
