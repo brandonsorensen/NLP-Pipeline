@@ -1,10 +1,10 @@
 import java.util.LinkedList;
 
 class PostingsNode {
-    private LinkedList<String> postingsList;
+    private LinkedList postingsList;
     private int frequency;
 
-    PostingsNode(LinkedList<String> postingsList, int frequency) {
+    PostingsNode(LinkedList<String> postingsList) {
         this.postingsList = postingsList;
         frequency = postingsList.size();
     }
@@ -13,7 +13,7 @@ class PostingsNode {
         return frequency;
     }
 
-    LinkedList<String> getPostings() {
+    LinkedList getPostings() {
         return postingsList;
     }
 }

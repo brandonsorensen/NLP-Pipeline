@@ -2,16 +2,20 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.LinkedList;
+import java.util.List;
 
-public class InvertedIndex<String, PostingNode> implements Map<String, PostingNode> {
-    private HashNode<String, PostingNode>[] buckets;
+public class InvertedIndex<Term extends String, Postings extends List>
+        implements Map<Term, Postings> {
+    private HashNode<Term, Postings>[] buckets;
     private int size;
-    private LinkedList<String> docContent;
+    private LinkedList<Term> docContent;
     private boolean indexing;
     private int capacity;
     private double loadFactor;
+    private Set<Term> keySet;
 
     public static final int DEFAULT_CAPACITY = 16;
+    public static final double DEFAULT_EXPANSION_RATE = 1.5;
 
     InvertedIndex() {
         clear();
@@ -53,34 +57,60 @@ public class InvertedIndex<String, PostingNode> implements Map<String, PostingNo
     }
 
     @Override
-    public PostingNode get(Object key) {
+    public Postings get(Object key) {
         return null;
     }
 
     @Override
-    public PostingNode put(String key, PostingNode value) {
+    public Postings put(Term key, Postings value) {
         if (key == null) {
             return putNullKey(value);
         }
 
-        HashNode<String, PostingNode> newEntry = new HashNode<>(key, value);
-        int bucket = newEntry.hashCode() % capacity;
-        
-        HashNode<String, PostingNode> existing =
+        HashNode<Term, Postings> newEntry = new HashNode<>(key, value);
+        int bucketIndex = newEntry.hashCode() % capacity;
+        Postings retVal;
 
+        HashNode<Term, Postings> existing = buckets[bucketIndex];
+        if (existing == null) {
+            retVal = addToEmptyBucket(newEntry, bucketIndex);
+        } else {
+            while (existing.next() != null) existing = existing.next();
+            size++;
+            retVal = existing.append(newEntry);
+        }
+
+        if (size >= loadFactor) {
+            expandCapacity();
+        }
+        return retVal;
+    }
+
+    private Postings addToEmptyBucket(HashNode<Term, Postings> newEntry, int index) {
+        buckets[index] = newEntry;
+        size++;
+        keySet.add(newEntry.getKey());
+        return newEntry.getValue();
+    }
+
+    private Postings putNullKey(Postings value) {return null;}
+
+    private void expandCapacity() {
+        capacity = capacity * 2;
+        System.arraycopy(buckets, 0, buckets, 0, capacity);
+        loadFactor = capacity * .75;
+    }
+
+    @Override
+    public Postings remove(Object key) {
         return null;
     }
 
-    private PostingNode putNullKey(PostingNode value) {return null;}
-
     @Override
-    public PostingNode remove(Object key) {
-        return null;
-    }
-
-    @Override
-    public void putAll(Map<? extends String, ? extends PostingNode> m) {
-
+    public void putAll(Map<? extends Term, ? extends Postings> m) {
+        for (Term term : m.keySet()) {
+            put(term, m.get(term));
+        }
     }
 
     @Override
@@ -99,17 +129,21 @@ public class InvertedIndex<String, PostingNode> implements Map<String, PostingNo
     }
 
     @Override
-    public Set<String> keySet() {
-        return null;
+    public Set<Term> keySet() {
+        return keySet;
     }
 
     @Override
-    public Collection<PostingNode> values() {
-        return null;
+    public Collection<Postings> values() {
+        LinkedList<Postings> retVal = new LinkedList<>();
+        for (Term term : keySet) {
+            retVal.add(get(term));
+        }
+        return retVal;
     }
 
     @Override
-    public Set<Entry<String, PostingNode>> entrySet() {
+    public Set<Entry<Term, Postings>> entrySet() {
         return null;
     }
 }

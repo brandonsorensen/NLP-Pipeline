@@ -1,7 +1,7 @@
-import java.util.Objects;
+import java.io.FileNotFoundException;
 
 public class TestHash {
-    public static void main(String[] args) {
-        InvertedIndex<String, PostingsNode>
+    public static void main(String[] args) throws FileNotFoundException {
+        Indexer indexer = new Indexer("src/tweets.csv");
     }
 }

@@ -1,12 +1,14 @@
 import java.util.Map;
 import java.util.Objects;
+import java.util.List;
 
-class HashNode<String, PostingNode> implements Map.Entry<String, PostingNode> {
+class HashNode<String, Postings extends List>
+        implements Map.Entry<String, Postings> {
     private String key;
-    private PostingNode value;
-    private HashNode<String, PostingNode> next;
+    private Postings value;
+    private HashNode<String, Postings> next;
 
-    HashNode(String key, PostingNode value) {
+    HashNode(String key, Postings value) {
         this.key = key;
         this.value = value;
         this.next = null;
@@ -18,22 +20,27 @@ class HashNode<String, PostingNode> implements Map.Entry<String, PostingNode> {
     }
 
     @Override
-    public PostingNode getValue() {
+    public Postings getValue() {
         return value;
     }
 
     @Override
-    public PostingNode setValue(PostingNode value) {
+    public Postings setValue(Postings value) {
         this.value = value;
         return value;
     }
 
-    public HashNode<String, PostingNode> next() {
+    public HashNode<String, Postings> next() {
         return next;
     }
 
-    public void setNext(HashNode<String, PostingNode> next) {
+    public void setNext(HashNode<String, Postings> next) {
         this.next = next;
+    }
+
+    public Postings append(HashNode<String, Postings> newEntry) {
+        setNext(newEntry);
+        return newEntry.getValue();
     }
 
     @Override
