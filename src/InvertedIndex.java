@@ -10,7 +10,6 @@ public class InvertedIndex<Term extends String, Postings extends List>
     private double loadFactor;
     private double expansionRate;
     // TODO Remove keySet
-    private Set<Term> keySet;
     private Set<Entry<Term, Postings>> entrySet;
 
     public static final int DEFAULT_CAPACITY = 16;
@@ -98,6 +97,7 @@ public class InvertedIndex<Term extends String, Postings extends List>
             while (existing.next() != null) existing = existing.next();
             size++;
             retVal = existing.append(newEntry);
+            entrySet.add(existing);
         }
 
         if (size >= loadFactor) {
@@ -109,7 +109,7 @@ public class InvertedIndex<Term extends String, Postings extends List>
     private Postings addToEmptyBucket(HashNode<Term, Postings> newEntry, int index) {
         buckets.set(index, newEntry);
         size++;
-        keySet.add(newEntry.getKey());
+        entrySet.add(newEntry);
         return newEntry.getValue();
     }
 
@@ -156,6 +156,7 @@ public class InvertedIndex<Term extends String, Postings extends List>
             objectNode = rightNode;
             currentNode.setNext(null);
         }
+        size--;
         return (Postings) objectNode.getValue();
     }
 
@@ -188,14 +189,18 @@ public class InvertedIndex<Term extends String, Postings extends List>
 
     @Override
     public Set<Term> keySet() {
-        return keySet;
+        Set<Term> retVal = new HashSet<>();
+        for (Entry<Term, Postings> entry : entrySet) {
+            retVal.add(entry.getKey());
+        }
+        return retVal;
     }
 
     @Override
     public Collection<Postings> values() {
         LinkedList<Postings> retVal = new LinkedList<>();
-        for (Term term : keySet) {
-            retVal.add(get(term));
+        for (Entry term : entrySet) {
+            retVal.add(get(term.getValue()));
         }
         return retVal;
     }
