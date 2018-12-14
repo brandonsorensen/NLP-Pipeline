@@ -1,3 +1,5 @@
+import javafx.geometry.Pos;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
@@ -86,26 +88,27 @@ public class InvertedIndex<Term extends String, Postings extends List>
 
         HashNode<Term, Postings> newEntry = new HashNode<>(key, value);
         int bucketIndex = getBucketIndex(newEntry);
-        Postings retVal;
+        HashNode<Term, Postings> startNode = buckets.get(bucketIndex);
 
-        HashNode<Term, Postings> node = buckets.get(bucketIndex);
-        if (node == null) {
-            retVal = addToEmptyBucket(newEntry, bucketIndex);
-        } else {
-            retVal = addToActiveBucket(newEntry, node);
+        if (startNode == null) {
+            return addToEmptyBucket(newEntry, bucketIndex);
         }
+        // If we make it this far, we know the bucket is active
+        return addToActiveBucket(newEntry, startNode);
+    }
+
+    private void updateIndex(HashNode<Term, Postings> newEntry) {
         size++;
         entrySet.add(newEntry);
         keySet.add(newEntry.getKey());
         if (size >= loadFactor) {
             expandCapacity(expansionRate);
         }
-
-        return retVal;
     }
 
     private Postings addToEmptyBucket(HashNode<Term, Postings> newEntry, int index) {
         buckets.set(index, newEntry);
+        updateIndex(newEntry);
         return newEntry.getValue();
     }
 
@@ -113,6 +116,7 @@ public class InvertedIndex<Term extends String, Postings extends List>
                                        HashNode<Term, Postings> startNode) {
         HashNode<Term, Postings> currentNode = startNode;
         while (currentNode.next() != null) currentNode = currentNode.next();
+        updateIndex(newEntry);
         return currentNode.append(newEntry);
     }
 
@@ -120,6 +124,9 @@ public class InvertedIndex<Term extends String, Postings extends List>
         capacity = (int) (capacity * rate);
         loadFactor *= capacity;
         buckets = new ArrayList<>(capacity);
+        for (int i = 0; i < capacity; i++) {
+            buckets.add(null);
+        }
         for (Entry<Term, Postings> entry : entrySet) {
             put(entry.getKey(), entry.getValue());
         }
@@ -187,6 +194,9 @@ public class InvertedIndex<Term extends String, Postings extends List>
     public void clear(int capacity) {
         this.capacity = capacity;
         buckets = new ArrayList<>(capacity);
+        for (int i = 0; i < capacity; i++) {
+            buckets.add(null);
+        }
         docContent = new LinkedList<>();
         size = 0;
         loadFactor = capacity * .75;
@@ -243,11 +253,11 @@ public class InvertedIndex<Term extends String, Postings extends List>
             builder.append(entry.getKey());
             builder.append(": ");
             builder.append(entry.getValue());
-            builder.append(",\n");
-            counter++;
             if (counter >= 10) {
                 break;
             }
+            counter++;
+            builder.append(",\n");
         }
         builder.append("}");
         return builder.toString();
