@@ -231,6 +231,14 @@ public class InvertedIndex<Term extends String, Postings extends List>
         return entrySet;
     }
 
+    public Map<String, Integer> freqDist() {
+        HashMap<String, Integer> freqDist = new HashMap<>();
+        for (Entry<Term, Postings> entry : entrySet) {
+            freqDist.put(entry.getKey(), entry.getValue().size());
+        }
+        return freqDist;
+    }
+
     private class Indexer {
         private String[] clean(String line) {
             return line.split("\t");
