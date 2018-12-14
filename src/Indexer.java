@@ -3,14 +3,7 @@ import java.io.FileNotFoundException;
 import java.util.Scanner;
 import java.util.LinkedList;
 
-class Indexer {
-    private String filePath;
-    private LinkedList tweets;
-
-    Indexer() {
-        filePath = null;
-        tweets = null;
-    }
+public static class Indexer {
 
     Indexer(String filePath) throws FileNotFoundException {
         this.filePath = filePath;
