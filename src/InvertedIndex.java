@@ -12,6 +12,7 @@ public class InvertedIndex<Term extends String, Postings extends List>
     private boolean indexing;
     private int capacity;
     private double loadFactor;
+    private double expansionRate;
     private Set<Term> keySet;
 
     public static final int DEFAULT_CAPACITY = 16;
@@ -39,32 +40,41 @@ public class InvertedIndex<Term extends String, Postings extends List>
 
     @Override
     public boolean isEmpty() {
+        // TODO
         return (size == 0);
     }
 
     @Override
     public boolean containsValue(Object value) {
+        // TODO
         return false;
     }
 
     @Override
     public boolean containsKey(Object key) {
+        // TODO
         return false;
     }
 
     public boolean containsPostingNodealue(Object value) {
+        // TODO
         return false;
     }
 
     @Override
     public Postings get(Object key) {
+        // TODO
         return null;
     }
 
     @Override
     public Postings put(Term key, Postings value) {
         if (key == null) {
-            return putNullKey(value);
+            try {
+                throw new NullKeyException("Null keys are not allowed.");
+            } catch (NullKeyException ex) {
+                System.out.println(ex);
+            }
         }
 
         HashNode<Term, Postings> newEntry = new HashNode<>(key, value);
@@ -81,7 +91,7 @@ public class InvertedIndex<Term extends String, Postings extends List>
         }
 
         if (size >= loadFactor) {
-            expandCapacity();
+            expandCapacity(expansionRate);
         }
         return retVal;
     }
@@ -93,12 +103,10 @@ public class InvertedIndex<Term extends String, Postings extends List>
         return newEntry.getValue();
     }
 
-    private Postings putNullKey(Postings value) {return null;}
-
-    private void expandCapacity() {
-        capacity = capacity * 2;
+    private void expandCapacity(double rate) {
+        capacity = (int) (capacity * rate);
         System.arraycopy(buckets, 0, buckets, 0, capacity);
-        loadFactor = capacity * .75;
+        loadFactor = capacity * loadFactor;
     }
 
     @Override
@@ -126,6 +134,7 @@ public class InvertedIndex<Term extends String, Postings extends List>
         docContent = new LinkedList<>();
         size = 0;
         loadFactor = capacity * .75;
+        expansionRate = 1.5;
     }
 
     @Override
@@ -142,8 +151,17 @@ public class InvertedIndex<Term extends String, Postings extends List>
         return retVal;
     }
 
+    public void setExpansionRate(double rate) {
+        expansionRate = rate;
+    }
+
+    public double getExpansionRate() {
+        return expansionRate;
+    }
+
     @Override
     public Set<Entry<Term, Postings>> entrySet() {
+        // TODO
         return null;
     }
 }
