@@ -64,8 +64,17 @@ public class InvertedIndex<Term extends String, Postings extends List>
 
     @Override
     public Postings get(Object key) {
-        // TODO
-        return null;
+        HashNode<Term, Postings> entry = getNode(key);
+        if (entry == null) {
+            throw new NoSuchElementException();
+        }
+        while (entry != null) {
+            if (entry.getKey().equals(key)) {
+                return entry.getValue();
+            }
+            entry = entry.next();
+        }
+        throw new NoSuchElementException();
     }
 
     @Override
@@ -113,17 +122,21 @@ public class InvertedIndex<Term extends String, Postings extends List>
         }
     }
 
-    @Override
-    @SuppressWarnings("unchecked")
-    public Postings remove(Object key) {
+    private HashNode<Term, Postings> getNode(Object key) {
         if (!(key instanceof String)) {
             throw new NoSuchElementException();
         }
 
         int bucketIndex = getBucketIndex((Term) key);
-        HashNode currentNode = buckets.get(bucketIndex);
+        return buckets.get(bucketIndex);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public Postings remove(Object key) {
+        HashNode currentNode = getNode(key);
         if (currentNode.getKey().equals(key)) {
-            buckets.remove(bucketIndex);
+            buckets.remove(getBucketIndex((Term) key));
             return (Postings) currentNode.getValue();
         }
         while (currentNode.next() != null || !currentNode.next().getKey().equals(key)) {
