@@ -13,7 +13,6 @@ import java.util.*;
  * @param <Term> a term in the collection
  * @param <Postings> an ordered collection of documents that the term appears in
  */
-// TODO: Should Postings just be a Set<Document>, maybe a TreeSet<Document>?
 public class InvertedIndex<Term extends String, Postings extends SortedSet<Document>>
         implements Map<Term, Postings> {
     private ArrayList<HashNode<Term, Postings>> buckets;

@@ -1,8 +1,8 @@
 import java.util.List;
 import java.util.Set;
 
-public class Corpus {
-    private final double corpusID;
+abstract class Corpus {
+    private final int corpusID;
     private Set<Document> collection;
     private int tokenCount, lineCount, docCount;
     private
