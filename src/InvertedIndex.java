@@ -8,11 +8,9 @@ import java.util.*;
 public class InvertedIndex<Term extends String, Postings extends List>
         implements Map<Term, Postings> {
     private ArrayList<HashNode<Term, Postings>> buckets;
-    private int size;
+    private int size, capacity;
+    private double loadFactor, expansionRate;
     private LinkedList<Term> docContent;
-    private int capacity;
-    private double loadFactor;
-    private double expansionRate;
     private Set<Term> keySet;
     private Set<Entry<Term, Postings>> entrySet;
     private Indexer indexer;
@@ -292,7 +290,7 @@ public class InvertedIndex<Term extends String, Postings extends List>
             DocumentPreprocessor dp = new DocumentPreprocessor("src/tweets.csv");
             int currentIndex = 0;
             for (List sent: dp) {
-                for (String term : sent) {
+                for (Object term : sent) {
 
                 }
             }
