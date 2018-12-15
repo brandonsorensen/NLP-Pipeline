@@ -1,8 +1,10 @@
+import java.util.Objects;
+
 public class Token {
     private String token;
     private Document doc;
     private int docID, lineNumber, linePosition;
-    private final double tokenID;
+    private final int tokenID = hashCode();
 
     Token(String token, Document doc) {
         this.token = token;
@@ -11,7 +13,10 @@ public class Token {
     }
 
     Token(String token, Document doc, int lineNumber, int linePosition) {
-
+        this.token = token;
+        this.doc = doc;
+        this.lineNumber = lineNumber;
+        this.linePosition = linePosition;
     }
 
     public String getToken() {
@@ -58,13 +63,14 @@ public class Token {
         return tokenID;
     }
 
-    public void setTokenID(double tokenID) {
-        this.tokenID = tokenID;
-    }
-
     @Override
     public boolean equals(Object other) {
         return token.equals(other);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(tokenID, docID, token);
     }
 
     @Override

@@ -8,33 +8,31 @@ public class Document {
     private ArrayList<Token[]> lines;
     private Set<String> types;
     private Tokenizer tokenizer;
-    private String docName;
-    private String rawText;
+    private String rawText; // TODO: Get raw text for all constructors
+    // TODO: Maybe add the ability to name a document
 
-    Document(int docID) {
-        this.docID = docID;
+    Document() {
         tokenizer = new Tokenizer();
         clear();
     }
-    Document(File file, int docID) throws FileNotFoundException {
-        this(file, docID, new Tokenizer());
+    Document(File file) throws FileNotFoundException {
+        this(file, new Tokenizer());
     }
 
-    Document(File file, int docID, Tokenizer tokenizer) throws FileNotFoundException {
-        this.docID = docID;
+    Document(File file, Tokenizer tokenizer) throws FileNotFoundException {
         this.tokenizer = tokenizer;
+        clear();
         Scanner scanner = new Scanner(file);
         while (scanner.hasNext()) {
             tokenize(scanner.next());
         }
     }
 
-    Document(String docText, int docID) throws FileNotFoundException {
-        this(docText, docID, new Tokenizer());
+    Document(String docText) throws FileNotFoundException {
+        this(docText, new Tokenizer());
     }
 
-    Document(String docText, int docID, Tokenizer tokenizer) throws FileNotFoundException {
-        this.docID = docID;
+    Document(String docText, Tokenizer tokenizer) throws FileNotFoundException {
         this.tokenizer = tokenizer;
         clear();
         String[] rawLines = docText.split("\n");
@@ -43,7 +41,7 @@ public class Document {
         }
     }
 
-    private void tokenize(String text) throws FileNotFoundException {
+    private void tokenize(String text) {
         List<String> tokenized = tokenizer.tokenize(text);
         int lineLength = tokenized.size();
         Token[] line = new Token[lineLength];
@@ -59,12 +57,13 @@ public class Document {
     }
 
     public Token[] getLineForToken(Token token) {
-        return lines.get(token.)
+        return lines.get(token.getLineNumber());
     }
 
     public void clear() {
         tokens = new HashSet<>();
         types = new HashSet<>();
+        rawText = "";
     }
 
     /**
@@ -142,6 +141,11 @@ public class Document {
      */
     public boolean contains(String term) {
         return types.contains(term);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(docID, tokens);
     }
 
     @Override
