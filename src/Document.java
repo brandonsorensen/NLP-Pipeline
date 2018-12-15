@@ -8,7 +8,7 @@ public class Document {
     private ArrayList<Token[]> lines;
     private Set<String> types;
     private Tokenizer tokenizer;
-    private String rawText; // TODO: Get raw text for all constructors
+    private String rawText;
     // TODO: Maybe add the ability to name a document
 
     Document() {
@@ -24,9 +24,13 @@ public class Document {
         this.tokenizer = tokenizer;
         clear();
         Scanner scanner = new Scanner(file);
-        while (scanner.hasNext()) {
-            tokenize(scanner.next());
+        StringBuilder rawOutput = new StringBuilder();
+        while (scanner.hasNextLine()) {
+            String line = scanner.nextLine();
+            rawOutput.append(line);
+            tokenize(line);
         }
+        rawText = rawOutput.toString();
         docID = hashCode();
     }
 
@@ -37,6 +41,7 @@ public class Document {
     Document(String docText, Tokenizer tokenizer) throws FileNotFoundException {
         this.tokenizer = tokenizer;
         clear();
+        rawText = docText;
         String[] rawLines = docText.split("\n");
         for (String line : rawLines) {
             tokenize(line);
@@ -136,6 +141,10 @@ public class Document {
         return types.size();
     }
 
+    public ArrayList<Token[]> getLines() {
+        return (ArrayList<Token[]>) lines.clone();
+    }
+
     /**
      * Determines if a term is in the document by checking whether
      * it is in the <\code>types</\code> set.
@@ -148,7 +157,7 @@ public class Document {
 
     @Override
     public int hashCode() {
-        return Objects.hash(docID, tokens);
+        return Objects.hash(types, tokens, lines);
     }
 
     @Override
@@ -157,6 +166,11 @@ public class Document {
             return false;
         }
         return ((Document) other).getDocID() == docID;
+    }
+
+    @Override
+    public String toString() {
+        return rawText;
     }
 
     /**

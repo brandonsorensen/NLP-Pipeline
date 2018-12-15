@@ -72,7 +72,7 @@ public class Token {
 
     @Override
     public int hashCode() {
-        return Objects.hash(tokenID, docID, token);
+        return Objects.hash(docID, token, lineNumber, linePosition);
     }
 
     @Override
