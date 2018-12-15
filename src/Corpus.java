@@ -1,9 +1,10 @@
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-abstract class Corpus {
+abstract class Corpus<d extends Document> implements Collection<Document> {
     private final int corpusID;
-    private Set<Document> collection;
+    private Collection<Document> collection;
     private int tokenCount, lineCount, docCount;
     private
 

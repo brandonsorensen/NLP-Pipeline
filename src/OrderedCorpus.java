@@ -1,2 +1,2 @@
-public class OrderedCorpus implements Corpus {
+public class OrderedCorpus<d extends Document> extends Corpus {
 }
