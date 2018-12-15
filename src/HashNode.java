@@ -1,8 +1,6 @@
-import java.util.Map;
-import java.util.Objects;
-import java.util.List;
+import java.util.*;
 
-class HashNode<String, Postings extends List>
+class HashNode<String, Postings extends SortedSet<Document>>
         implements Map.Entry<String, Postings> {
     private String key;
     private Postings value;

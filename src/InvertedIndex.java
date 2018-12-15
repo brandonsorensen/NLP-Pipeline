@@ -1,8 +1,20 @@
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
 
-public class InvertedIndex<Term extends String, Postings extends List>
+/**
+ * A class to represent an inverted index of terms and their respective documents.
+ * In implementation it is a HashMap with a view tweaks. Most notably, attempting to
+ * put a term that already exists in the <\code>entrySet</\code> does not result in an
+ * exception or override the value but instead adds the term's document ID to the
+ * postings list.
+ *
+ * Each term is mapped to a postings list, which is itself just a list of document IDs.
+ * The value-collection need only implement Java's List interface.
+ * @param <Term> a term in the collection
+ * @param <Postings> an ordered collection of documents that the term appears in
+ */
+// TODO: Should Postings just be a Set<Document>, maybe a TreeSet<Document>?
+public class InvertedIndex<Term extends String, Postings extends SortedSet<Document>>
         implements Map<Term, Postings> {
     private ArrayList<HashNode<Term, Postings>> buckets;
     private int size, capacity;
@@ -29,7 +41,8 @@ public class InvertedIndex<Term extends String, Postings extends List>
     }
 
     public void index(String path) throws FileNotFoundException {
-        indexer.index(path);
+        // FIXME
+        return;
     }
 
     @Override
@@ -76,7 +89,6 @@ public class InvertedIndex<Term extends String, Postings extends List>
     public Postings put(Term key, Postings value) {
         // TODO: If key exists, add to its postings list
         // TODO: Check if key exists using keySet
-        // TODO: Throw exception if key already exists??
         if (key == null) {
             try {
                 throw new NullKeyException("Null keys are not allowed.");
@@ -86,6 +98,17 @@ public class InvertedIndex<Term extends String, Postings extends List>
         }
 
         HashNode<Term, Postings> newEntry = new HashNode<>(key, value);
+        if (entrySet.contains(newEntry)) {
+            Postings toExtend = get(newEntry);
+            toExtend.add(value.first());
+            return value;
+        }
+        return putIfAbsent(key, value);
+    }
+
+    @Override
+    public Postings putIfAbsent(Term key, Postings value) {
+        HashNode<Term, Postings> newEntry = new HashNode<>(key, value);
         int bucketIndex = getBucketIndex(newEntry);
         HashNode<Term, Postings> startNode = buckets.get(bucketIndex);
 
@@ -94,17 +117,6 @@ public class InvertedIndex<Term extends String, Postings extends List>
         }
         // If we make it this far, we know the bucket is active
         return addToActiveBucket(newEntry, startNode);
-    }
-
-    public Postings put(Term key, int documentID) {
-        if (containsKey(key)) {
-            Postings postingsList = get(key);
-            postingsList.add(documentID);
-            return postingsList;
-        }
-
-        // If we reach this point, the key isn't in our table
-        return put(key, (Postings) new LinkedList<Integer>());
     }
 
     private void updateIndex(HashNode<Term, Postings> newEntry) {
@@ -238,7 +250,7 @@ public class InvertedIndex<Term extends String, Postings extends List>
         return expansionRate;
     }
 
-    public String getDocAtIndex(int index) {
+    public Term getDocAtIndex(int index) {
         return docContent.get(index);
     }
 
@@ -247,8 +259,8 @@ public class InvertedIndex<Term extends String, Postings extends List>
         return entrySet;
     }
 
-    public Map<String, Integer> freqDist() {
-        HashMap<String, Integer> freqDist = new HashMap<>();
+    public Map<Term, Integer> freqDist() {
+        HashMap<Term, Integer> freqDist = new HashMap<>();
         for (Entry<Term, Postings> entry : entrySet) {
             freqDist.put(entry.getKey(), entry.getValue().size());
         }
@@ -274,25 +286,5 @@ public class InvertedIndex<Term extends String, Postings extends List>
     }
 
     private class Indexer {
-        private String[] clean(String line) {
-            return line.split("\t");
-        }
-        private Set alphabet = new HashSet<String>(
-                Arrays.asList("aäbcdeëfghïejklmnoöpqrsßtüuvwxyz".split(""))
-        );
-
-        LinkedList index(String filePath) throws FileNotFoundException {
-            LinkedList<String> retVal = new LinkedList<>();
-
-            DocumentPreprocessor dp = new DocumentPreprocessor("src/tweets.csv");
-            int currentIndex = 0;
-            for (List sent: dp) {
-                for (Object term : sent) {
-
-                }
-            }
-
-            return retVal;
-        }
     }
 }
