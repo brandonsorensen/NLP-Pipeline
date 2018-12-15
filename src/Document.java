@@ -3,7 +3,7 @@ import java.io.FileNotFoundException;
 import java.util.*;
 
 public class Document {
-    private final int docID;
+    private int docID;
     private Set<Token> tokens;
     private ArrayList<Token[]> lines;
     private Set<String> types;
@@ -16,8 +16,18 @@ public class Document {
         tokenizer = new Tokenizer();
         clear();
     }
+
+    Document(int docID) {
+        this();
+        this.docID = docID;
+    }
     Document(File file) throws FileNotFoundException {
         this(file, new Tokenizer());
+    }
+
+    Document(int docID, File file) throws FileNotFoundException {
+        this(file);
+        this.docID = docID;
     }
 
     Document(File file, Tokenizer tokenizer) throws FileNotFoundException {
@@ -34,8 +44,18 @@ public class Document {
         docID = hashCode();
     }
 
+    Document(int docID, File file, Tokenizer tokenizer) throws FileNotFoundException {
+        this(file, tokenizer);
+        this.docID = docID;
+    }
+
     Document(String docText) throws FileNotFoundException {
         this(docText, new Tokenizer());
+    }
+
+    Document(int docID, String docText) throws FileNotFoundException {
+        this(docText);
+        this.docID = docID;
     }
 
     Document(String docText, Tokenizer tokenizer) throws FileNotFoundException {
@@ -47,6 +67,11 @@ public class Document {
             tokenize(line);
         }
         docID = hashCode();
+    }
+
+    Document(int docID, String docText, Tokenizer tokenizer) throws FileNotFoundException {
+        this(docText, tokenizer);
+        this.docID = docID;
     }
 
     private void tokenize(String text) {
