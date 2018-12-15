@@ -1,4 +1,3 @@
-import javax.print.Doc;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
@@ -7,7 +6,10 @@ public class Document {
     private final int docID;
     private int lineCount, tokenCount, typeCount;
     private LinkedList<Token> tokens;
+    private ArrayList<Token[]> lines;
     private Set<String> types;
+    // TODO: Allow optional naming of documents
+    private String docName;
 
     Document(int docID) {
         this.docID = docID;
@@ -37,19 +39,27 @@ public class Document {
         Tokenizer tokenizer = new Tokenizer();
         Scanner scanner = new Scanner(new File(path));
         while (scanner.hasNext()) {
-            int priorTypeCount = types.size();
             List<String> tokenized = tokenizer.tokenize(scanner.next());
-            for (String str : tokenized) {
-                Token token = new Token(str, this);
-                types.add(token.toString());
-                tokens.add(token);
-            }
             int lineLength = tokenized.size();
+            Token[] line = new Token[lineLength];
+            int priorTypeCount = types.size();
             lineCount++;
+            int linePosition = 0; // To avoid using get on our linked list so many times
+            for (String str : tokenized) {
+                Token token = new Token(str, this, lineCount, linePosition);
+                types.add(str);
+                tokens.add(token);
+                line[linePosition] = token;
+                linePosition++;
+            }
             tokenCount += lineLength;
             typeCount = types.size() - priorTypeCount;
+            lines.add(line);
         }
+    }
 
+    public Token[] getLineForToken(Token token) {
+        return lines.get(token.)
     }
 
     public void clear() {
@@ -109,6 +119,42 @@ public class Document {
         }
         List<Token> matchingTokens = getTokensFromString(term);
         return (float) matchingTokens.size() / tokens.size();
+    }
+
+    public int getDocID() {
+        return docID;
+    }
+
+    public int getLineCount() {
+        return lineCount;
+    }
+
+    public void setLineCount(int lineCount) {
+        this.lineCount = lineCount;
+    }
+
+    public int getTokenCount() {
+        return tokenCount;
+    }
+
+    public void setTokenCount(int tokenCount) {
+        this.tokenCount = tokenCount;
+    }
+
+    public int getTypeCount() {
+        return typeCount;
+    }
+
+    public void setTypeCount(int typeCount) {
+        this.typeCount = typeCount;
+    }
+
+    public void setTokens(LinkedList<Token> tokens) {
+        this.tokens = tokens;
+    }
+
+    public void setTypes(Set<String> types) {
+        this.types = types;
     }
 
     /**
