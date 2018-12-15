@@ -12,6 +12,7 @@ public class Document {
     // TODO: Maybe add the ability to name a document
 
     Document() {
+        this.docID = hashCode();
         tokenizer = new Tokenizer();
         clear();
     }
@@ -26,6 +27,7 @@ public class Document {
         while (scanner.hasNext()) {
             tokenize(scanner.next());
         }
+        docID = hashCode();
     }
 
     Document(String docText) throws FileNotFoundException {
@@ -39,6 +41,7 @@ public class Document {
         for (String line : rawLines) {
             tokenize(line);
         }
+        docID = hashCode();
     }
 
     private void tokenize(String text) {

@@ -4,12 +4,13 @@ public class Token {
     private String token;
     private Document doc;
     private int docID, lineNumber, linePosition;
-    private final int tokenID = hashCode();
+    private final int tokenID;
 
     Token(String token, Document doc) {
         this.token = token;
         this.doc = doc;
         this.docID = doc.getDocID();
+        tokenID = hashCode();
     }
 
     Token(String token, Document doc, int lineNumber, int linePosition) {
@@ -17,6 +18,7 @@ public class Token {
         this.doc = doc;
         this.lineNumber = lineNumber;
         this.linePosition = linePosition;
+        tokenID = hashCode();
     }
 
     public String getToken() {
