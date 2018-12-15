@@ -4,58 +4,58 @@ import java.util.*;
 
 public class Document {
     private final int docID;
-    private int lineCount, tokenCount, typeCount;
-    private LinkedList<Token> tokens;
+    private Set<Token> tokens;
     private ArrayList<Token[]> lines;
     private Set<String> types;
-    // TODO: Allow optional naming of documents
+    private Tokenizer tokenizer;
     private String docName;
+    private String rawText;
 
     Document(int docID) {
         this.docID = docID;
+        tokenizer = new Tokenizer();
         clear();
     }
-    Document(String path, int docID) throws FileNotFoundException {
+    Document(File file, int docID) throws FileNotFoundException {
+        this(file, docID, new Tokenizer());
+    }
+
+    Document(File file, int docID, Tokenizer tokenizer) throws FileNotFoundException {
         this.docID = docID;
-        clear();
-        Tokenizer tokenizer = new Tokenizer();
-        Scanner scanner = new Scanner(new File(path));
+        this.tokenizer = tokenizer;
+        Scanner scanner = new Scanner(file);
         while (scanner.hasNext()) {
-            int priorTypeCount = types.size();
-            List<Token> tokenized = tokenizer.tokenize(scanner.next());
-            // TODO: Tokenizer returns String, create Tokens here
-            for (Token token : tokenized) {
-                types.add(token.toString());
-                tokens.add(token);
-            }
-            int lineLength = tokenized.size();
-            lineCount++;
-            tokenCount += lineLength;
-            typeCount = types.size() - priorTypeCount;
+            tokenize(scanner.next());
         }
     }
 
-    private void tokenize(String path) throws FileNotFoundException {
-        Tokenizer tokenizer = new Tokenizer();
-        Scanner scanner = new Scanner(new File(path));
-        while (scanner.hasNext()) {
-            List<String> tokenized = tokenizer.tokenize(scanner.next());
-            int lineLength = tokenized.size();
-            Token[] line = new Token[lineLength];
-            int priorTypeCount = types.size();
-            lineCount++;
-            int linePosition = 0; // To avoid using get on our linked list so many times
-            for (String str : tokenized) {
-                Token token = new Token(str, this, lineCount, linePosition);
-                types.add(str);
-                tokens.add(token);
-                line[linePosition] = token;
-                linePosition++;
-            }
-            tokenCount += lineLength;
-            typeCount = types.size() - priorTypeCount;
-            lines.add(line);
+    Document(String docText, int docID) throws FileNotFoundException {
+        this(docText, docID, new Tokenizer());
+    }
+
+    Document(String docText, int docID, Tokenizer tokenizer) throws FileNotFoundException {
+        this.docID = docID;
+        this.tokenizer = tokenizer;
+        clear();
+        String[] rawLines = docText.split("\n");
+        for (String line : rawLines) {
+            tokenize(line);
         }
+    }
+
+    private void tokenize(String text) throws FileNotFoundException {
+        List<String> tokenized = tokenizer.tokenize(text);
+        int lineLength = tokenized.size();
+        Token[] line = new Token[lineLength];
+        int linePosition = 0; // To avoid using get on our linked list so many times
+        for (String str : tokenized) {
+            Token token = new Token(str, this, getLineCount(), linePosition);
+            types.add(str);
+            tokens.add(token);
+            line[linePosition] = token;
+            linePosition++;
+        }
+        lines.add(line);
     }
 
     public Token[] getLineForToken(Token token) {
@@ -63,10 +63,7 @@ public class Document {
     }
 
     public void clear() {
-        lineCount = 0;
-        tokenCount = 0;
-        typeCount = 0;
-        tokens = new LinkedList<>();
+        tokens = new HashSet<>();
         types = new HashSet<>();
     }
 
@@ -74,7 +71,7 @@ public class Document {
      * Gets an array containing all tokens
      * @return an array of all tokens
      */
-    public List<Token> getTokens() {
+    public Set<Token> getTokens() {
         return tokens;
     }
 
@@ -126,35 +123,15 @@ public class Document {
     }
 
     public int getLineCount() {
-        return lineCount;
-    }
-
-    public void setLineCount(int lineCount) {
-        this.lineCount = lineCount;
+        return lines.size();
     }
 
     public int getTokenCount() {
-        return tokenCount;
-    }
-
-    public void setTokenCount(int tokenCount) {
-        this.tokenCount = tokenCount;
+        return tokens.size();
     }
 
     public int getTypeCount() {
-        return typeCount;
-    }
-
-    public void setTypeCount(int typeCount) {
-        this.typeCount = typeCount;
-    }
-
-    public void setTokens(LinkedList<Token> tokens) {
-        this.tokens = tokens;
-    }
-
-    public void setTypes(Set<String> types) {
-        this.types = types;
+        return types.size();
     }
 
     /**
@@ -165,6 +142,14 @@ public class Document {
      */
     public boolean contains(String term) {
         return types.contains(term);
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (!(other instanceof Document)) {
+            return false;
+        }
+        return ((Document) other).getDocID() == docID;
     }
 
     /**
